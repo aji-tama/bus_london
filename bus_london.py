@@ -284,17 +284,17 @@ def busbus(i):
 
         temp_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['T']
         temp_cmap = matplotlib.cm.get_cmap('coolwarm')
-        ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/30,0,1)),zorder=3)
+        ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/25,0,1)),zorder=3)
         
         RH_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['H']
-        ax0.annotate(RH_northolt+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
+        ax0.annotate(str(int(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
 
         W_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['W']
         ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',zorder=3)
     except Exception as e:
         print(e)
-        ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/30,0,1)),zorder=3)
-        ax0.annotate(RH_northolt+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
+        ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/25,0,1)),zorder=3)
+        ax0.annotate(str(int(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
         ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',zorder=3)
         print('MET fail')
     
