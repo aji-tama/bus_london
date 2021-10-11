@@ -47,8 +47,7 @@ fig = plt.figure(figsize=(12.8,9), facecolor='black')
 ephem       = load('de421.bsp') #1900-2050 only
 sun         = ephem['sun']
 earth       = ephem['earth']
-colindale   = (earth + wgs84.latlon((51+35/60+27/3600),-(0+14/60+54/3600)),\
-               51+35/60+27/3600,-(0+14/60+54/3600),'51:35:27','N','-0:14:54','W')
+colindale   = earth + wgs84.latlon((51+35/60+27/3600),-(0+14/60+54/3600))
 
 def busbus(i):
     global ax0, TM_temp, TM_RH
@@ -245,8 +244,11 @@ def busbus(i):
 ##        pass
 
     ts = load.timescale()
-    sun_vector = colindale[0].at(ts.utc(ts.now().utc_datetime())).observe(sun).apparent()
-    ax0.add_patch(patches.Rectangle((140,30),70,60,facecolor=cmocean.cm.ice(numpy.clip(sun_vector.altaz()[0].degrees/62,0,1)),edgecolor=None,zorder=2))
+    #sun alt now
+    sun_vector = colindale.at(ts.utc(ts.now().utc_datetime())).observe(sun).apparent()
+    #sun max alt in next 24hr
+    sun_max_alt = max(colindale.at(ts.utc(ts.now().utc_datetime().year,ts.now().utc_datetime().month,ts.now().utc_datetime().day,ts.now().utc_datetime().hour,range(24*60))).observe(sun).apparent().altaz()[0].degrees)
+    ax0.add_patch(patches.Rectangle((140,30),70,60,facecolor=cmocean.cm.ice(numpy.clip(sun_vector.altaz()[0].degrees/sun_max_alt,0,1)),edgecolor=None,zorder=2))
     
     #grad_h = 35
     #for i in range(100):
