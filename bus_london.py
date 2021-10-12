@@ -23,6 +23,7 @@ from bs4 import BeautifulSoup
 import numpy
 import matplotlib.animation
 import objgraph
+import rclone
 
 if platform == 'win32':
     chara_chi = font_manager.FontProperties(fname = 'C:/WINDOWS/Fonts/YUGOTHR.TTC', size=14)
@@ -307,6 +308,14 @@ def busbus(i):
     plt.tight_layout()
     fig.canvas.draw() 
     fig.canvas.flush_events()
+    
+    #upload to Dropbox
+    plt.savefig('bus_london.png')
+    cfg_path = r'/home/pi/.config/rclone/rclone.conf'
+    with open(cfg_path) as f:
+        cfg = f.read()
+        
+    ULdropbox = rclone.with_config(cfg).copy('/home/pi/Desktop/bus_london.png','webpage:webpage')
     
     T1 = time.time()
     #print(T1-T0)
