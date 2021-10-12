@@ -6,6 +6,7 @@ from sys import platform
 from matplotlib import font_manager
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.patheffects as pe
 import cmocean
 from bs4 import BeautifulSoup
 import requests
@@ -292,12 +293,13 @@ def busbus(i):
         ax0.annotate(str(int(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
 
         W_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['W']
-        ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',zorder=3)
+        ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',path_effects=[pe.withStroke(linewidth=2,foreground='gray',alpha=0.5)],zorder=3)
+
     except Exception as e:
         print(e)
         ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/25,0,1)),zorder=3)
         ax0.annotate(str(int(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
-        ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',zorder=3)
+        ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',path_effects=[pe.withStroke(linewidth=2,foreground='gray',alpha=0.5)],zorder=3)
         print('MET fail')
     
     ax0.annotate('updated: '+datetime.now().strftime('%H:%M:%S'),(209,0),ha='right',va='bottom',fontsize=12,color='w')
