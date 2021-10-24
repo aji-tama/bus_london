@@ -229,50 +229,18 @@ def busbus(i):
     ax0.annotate(CTB962XETAstr2a,(70,15-2),ha='center',va='top',fontsize=18,color='w')
     ax0.annotate(CTB962XETAstr2b,(138,15),ha='right',va='top',fontsize=36,color='w')
     
-    #ax0.annotate('SHIT\nNETWORK\nFAIL',(175,75),ha='center',va='center',fontsize=36,color='r',zorder=0)
-    
-##    try:
-##        feed = feedparser.parse('https://rss.weather.gov.hk/rss/CurrentWeather.xml')
-##        urlretrieve(re.search('(?P<url>https?://[^\s"\"]+)', feed.entries[0]['summary']).group('url'), 'weather_icon.png')
-##        weather_icon = Image.open('weather_icon.png')
-##        #alphas = numpy.ones((70,70))
-##        #alphas[35:, :] = numpy.linspace(1,0,35)[:,None]
-##        ax0.imshow(weather_icon, extent=(140,210,40,110), zorder=1)
-##    except Exception as e:
-##        print(e)
-##        weather_icon = Image.open('weather_icon.png')
-##        ax0.imshow(weather_icon, extent=(140,210,40,110), zorder=1)
-##        print('HKO RSS fail')
-##        pass
-
     ts = load.timescale()
     #sun alt now
     sun_vector = colindale.at(ts.utc(ts.now().utc_datetime())).observe(sun).apparent()
     #sun max alt in next 24hr
     sun_max_alt = max(colindale.at(ts.utc(ts.now().utc_datetime().year,ts.now().utc_datetime().month,ts.now().utc_datetime().day,ts.now().utc_datetime().hour,range(24*60))).observe(sun).apparent().altaz()[0].degrees)
-    ax0.add_patch(patches.Rectangle((140,30),70,60,facecolor=cmocean.cm.ice(numpy.clip(sun_vector.altaz()[0].degrees/sun_max_alt,0,1)),edgecolor=None,zorder=2))
+    ax0.add_patch(patches.Rectangle((140,30),70,60,facecolor=cmocean.cm.ice(numpy.clip((sun_vector.altaz()[0].degrees+10)/sun_max_alt,0,0.9)),edgecolor=None,zorder=2))
     
     #grad_h = 35
     #for i in range(100):
     #    grad = patches.Rectangle((140,50+i*grad_h/100),70,grad_h/100,facecolor='k',edgecolor=None,alpha=0.5-i*0.5/100,zorder=2)
     #    ax0.add_patch(grad)
     
-##    try:
-##        link_w = 'http://www.weather.gov.hk/wxinfo/ts/text_readings_e.htm'
-##        html_w = requests.get(link_w).text
-##        soup_w = BeautifulSoup(html_w, 'html.parser')
-##    except Exception as e:
-##        print(e)
-##        print('HKO Regional Weather fail')
-##                
-##    link_text = 'https://rss.weather.gov.hk/rss/LocalWeatherForecast_uc.xml'
-##    html_text = requests.get(link_text).content
-##    soup_text = BeautifulSoup(html_text, features='xml')
-##    text_para = soup_text.findAll('description')[1].text
-##    
-##    para_l = 20
-##    ax0.text(141.5,5,ChiWrap.wrap3(str(text_para),para_l)[0],ha='left',va='bottom',fontproperties=chara_chi,color='w',wrap=True,zorder=3)
-
     WT = {'0':'Clear\nnight','1':'Sunny\nday','2':'Partly\ncloudy\n(night)','3':'Partly\ncloudy\n(day)',
           '4':'Not\nused','5':'Mist','6':'Fog','7':'Cloudy',
           '8':'Overcast','9':'Light\nrain\nshower\n(night)','10':'Light\nrain\nshower\n(day)','11':'Drizzle',
@@ -291,19 +259,36 @@ def busbus(i):
         ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/25,0,1)),zorder=3)
         
         RH_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['H']
-        ax0.annotate(str(int(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
+        ax0.annotate(str(round(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
 
+        wind_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['S']
+        if float(temp_northolt) <= 10 and float(wind_northolt) >= 3:
+            ws = float(wind_northolt)*1.609344
+            WC = 13.12 + 0.6215*float(temp_northolt) - 11.37*numpy.power(ws,0.16) + 0.3965*float(temp_northolt)*numpy.power(ws,0.16)
+            ax0.annotate('WC: '+str(round(WC,1))+'$\u00B0$C',(175,5),ha='center',va='bottom',fontsize=36,color=temp_cmap(numpy.clip(WC/25,0,1)),zorder=3)
+        elif float(temp_northolt) >= 27 and float(RH_northolt) >= 40:
+            HI = -8.78469475556\
+                 +1.61139411*float(temp_northolt)\
+                 +2.33854883889*float(RH_northolt)\
+                 -0.14611605*float(temp_northolt)*float(RH_northolt)\
+                 -0.012308094*float(temp_northolt)*float(temp_northolt)\
+                 -0.0164248277778*float(RH_northolt)*float(RH_northolt)\
+                 +0.002211732*float(temp_northolt)*float(temp_northolt)*float(RH_northolt)\
+                 +0.00072546*float(temp_northolt)*float(RH_northolt)*float(RH_northolt)\
+                 -0.000003582*float(temp_northolt)*float(temp_northolt)*float(RH_northolt)*float(RH_northolt)
+            ax0.annotate('HI: '+str(round(HI,1))+'$\u00B0$C',(175,5),ha='center',va='bottom',fontsize=36,color=temp_cmap(numpy.clip(HI/25,0,1)),zorder=3)  
+            
         W_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['W']
         ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',path_effects=[pe.withStroke(linewidth=2,foreground='gray',alpha=0.5)],zorder=3)
 
     except Exception as e:
         print(e)
         ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/25,0,1)),zorder=3)
-        ax0.annotate(str(int(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
+        ax0.annotate(str(round(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
         ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',path_effects=[pe.withStroke(linewidth=2,foreground='gray',alpha=0.5)],zorder=3)
         print('MET fail')
     
-    ax0.annotate('updated: '+datetime.now().strftime('%H:%M:%S'),(209,0),ha='right',va='bottom',fontsize=12,color='w')
+    ax0.annotate('northolt weather updated: '+datetime.now().strftime('%H:%M:%S'),(209,0),ha='right',va='bottom',fontsize=12,color='w')
     
     plt.tight_layout()
     fig.canvas.draw() 
