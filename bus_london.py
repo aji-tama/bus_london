@@ -10,14 +10,15 @@ import matplotlib.patheffects as pe
 import cmocean
 from bs4 import BeautifulSoup
 import requests
-from datetime import datetime, timedelta
-from pytz import timezone, common_timezones
+import datetime
+from pytz import timezone, common_timezones, utc
 from skyfield.api import load, wgs84
 from urllib.request import urlretrieve
 import socket
 import feedparser
 import re
 #import ChiWrap
+from operator import itemgetter
 from PIL import Image
 from bs4 import BeautifulSoup
 import numpy
@@ -25,13 +26,18 @@ import matplotlib.animation
 import objgraph
 import rclone
 
-if platform == 'win32':
-    chara_chi = font_manager.FontProperties(fname = 'C:/WINDOWS/Fonts/YUGOTHR.TTC', size=14)
-elif platform == 'darwin':
-    chara_chi = font_manager.FontProperties(fname = '/Library/Fonts/SIMHEI.TTF', size=14)
-elif platform == 'linux':
-    chara_chi = font_manager.FontProperties(fname = '/home/pi/.local/share/fonts/Unknown Vendor/TrueType/SimHei/simhei.ttf', size=14)
+# if platform == 'win32':
+#     chara_chi = font_manager.FontProperties(fname = 'C:/WINDOWS/Fonts/YUGOTHR.TTC', size=14)
+# elif platform == 'darwin':
+#     chara_chi = font_manager.FontProperties(fname = '/Library/Fonts/SIMHEI.TTF', size=14)
+# elif platform == 'linux':
+#     chara_chi = font_manager.FontProperties(fname = '/home/pi/.local/share/fonts/Unknown Vendor/TrueType/SimHei/simhei.ttf', size=14)
     
+with open('MET_key.txt') as f_MET:
+    MET_key = f_MET.read()
+with open('TfL_key.txt') as f_TfL:
+    TfL_key = f_TfL.read()
+
 fig = plt.figure(figsize=(12.8,9), facecolor='black')
 
 ### location search
@@ -60,7 +66,7 @@ def busbus(i):
         plt.clf()
         ax0.clear()
     except:
-        print('session start at '+datetime.now().strftime('%d %b %H:%M:%S'))
+        print('session start at '+datetime.datetime.now().strftime('%d %b %H:%M:%S'))
         pass
 
     ax0 = plt.axes()
@@ -69,165 +75,189 @@ def busbus(i):
     ax0.set_ylim((0,140))
     ax0.axis('off')
 
-    ax0.annotate((datetime.now()+timedelta(minutes=0.25)).strftime('%a %d %b %H:%M'),(105,125),ha='center',va='center',fontsize=96,color='y')
+    ax0.annotate((datetime.datetime.now()+datetime.timedelta(minutes=0.25)).strftime('%a %d %b %H:%M'),(105,125),ha='center',va='center',fontsize=96,color='y')
 
     ax0.annotate('HKT:',(140,110),ha='left',va='top',fontsize=36,color='orange')
-    ax0.annotate((datetime.now().astimezone(timezone('Asia/Hong_Kong'))+timedelta(minutes=0.25)).strftime('%d %b %H:%M'),(210,100),ha='right',va='top',fontsize=36,color='orange')
+    ax0.annotate((datetime.datetime.now().astimezone(timezone('Asia/Hong_Kong'))+datetime.timedelta(minutes=0.25)).strftime('%d %b %H:%M'),(210,100),ha='right',va='top',fontsize=36,color='orange')
 
-    KMB61META = []
-    KMB61METAstr1a = ''
-    KMB61METAstr1b = 'not available'
-    KMB61METAstr2a = ''
-    KMB61METAstr2b = 'not available'
-    KMB52XETA = []
-    KMB52XETAstr1a = ''
-    KMB52XETAstr1b = 'not available'
-    KMB52XETAstr2a = ''
-    KMB52XETAstr2b = 'not available'
+    PC125ETA = []
+    PC125ETAstr1a = ''
+    PC125ETAstr1b = 'N/A'
+    PC125ETAstr2a = ''
+    PC125ETAstr2b = 'N/A'
+    PC186ETA = []
+    PC186ETAstr1a = ''
+    PC186ETAstr1b = 'N/A'
+    PC186ETAstr2a = ''
+    PC186ETAstr2b = 'N/A'
     
     socket.setdefaulttimeout(3)
 
     try:
-        link_KMB = 'https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/630AA1866C5372B6'
-        html_KMB = requests.get(link_KMB).json()
+        link_PC = 'https://api.tfl.gov.uk/StopPoint/490017849E/Arrivals?mode=bus&app_key='+TfL_key
+        html_PC = requests.get(link_PC).json()
 
-        for i in range(len(html_KMB['data'])):
-            if html_KMB['data'][i]['route'] == '61M':
-                KMB61META.append(datetime.strptime(html_KMB['data'][i]['eta'],'%Y-%m-%dT%H:%M:%S+08:00'))
-                KMB61Mdest = '往' + str(html_KMB['data'][i]['dest_tc'])
+        for i in range(len(html_PC)):
+            if html_PC[i]["lineId"] == '125':
+                PC125ETA.append(datetime.datetime.strptime(html_PC[i]["expectedArrival"],'%Y-%m-%dT%H:%M:%SZ'))
+                PC125dest = str(html_PC[i]["stationName"]) + ' to ' + str(html_PC[i]["destinationName"])
 
-            elif html_KMB['data'][i]['route'] == '52X':
-                KMB52XETA.append(datetime.strptime(html_KMB['data'][i]['eta'],'%Y-%m-%dT%H:%M:%S+08:00'))
-                KMB52Xdest = '往' + str(html_KMB['data'][i]['dest_tc'])
-               
-        try:
-            KMB61METAstr1a = str(KMB61META[0].time())
-            KMB61METAstr1b = str('{:.1f}'.format((KMB61META[0]-datetime.now()).total_seconds()/60))+' mins'
+            elif html_PC[i]["lineId"] == "186":
+                PC186ETA.append(datetime.datetime.strptime(html_PC[i]["expectedArrival"],'%Y-%m-%dT%H:%M:%SZ'))
+                PC186dest = str(html_PC[i]["stationName"]) + ' to ' + str(html_PC[i]["destinationName"])
+        
+        #original order is chaos
+        PC125ETA = sorted(PC125ETA)
+        PC186ETA = sorted(PC186ETA)
+        
+        try: #change to tzaware UTC dt and then switch tz to London
+            PC125ETAstr1a = str(timezone('UTC').localize(PC125ETA[0]).astimezone(timezone('Europe/London')).time())
+            PC125ETAstr1b = str('{:.1f}'.format((PC125ETA[0]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
         except:
-            KMB61METAstr1a = ''
-            KMB61METAstr1b = 'not available'
+            PC125ETAstr1a = ''
+            PC125ETAstr1b = 'N/A'
         try:
-            KMB61METAstr2a = str(KMB61META[1].time())
-            KMB61METAstr2b = str('{:.1f}'.format((KMB61META[1]-datetime.now()).total_seconds()/60))+' mins'
+            PC125ETAstr2a = str(timezone('UTC').localize(PC125ETA[1]).astimezone(timezone('Europe/London')).time())
+            PC125ETAstr2b = str('{:.1f}'.format((PC125ETA[1]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
         except:
-            KMB61METAstr2a = ''
-            KMB61METAstr2b = 'not available'
+            PC125ETAstr2a = ''
+            PC125ETAstr2b = 'N/A'
 
         try:
-            KMB52XETAstr1a = str(KMB52XETA[0].time())
-            KMB52XETAstr1b = str('{:.1f}'.format((KMB52XETA[0]-datetime.now()).total_seconds()/60))+' mins'
+            PC186ETAstr1a = str(timezone('UTC').localize(PC186ETA[0]).astimezone(timezone('Europe/London')).time())
+            PC186ETAstr1b = str('{:.1f}'.format((PC186ETA[0]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
         except:
-            KMB52XETAstr1a = ''
-            KMB52XETAstr1b = 'not available'
+            PC186ETAstr1a = ''
+            PC186ETAstr1b = 'N/A'
         try:
-            KMB52XETAstr2a = str(KMB52XETA[1].time())
-            KMB52XETAstr2b = str('{:.1f}'.format((KMB52XETA[1]-datetime.now()).total_seconds()/60))+' mins'
+            PC186ETAstr2a = str(timezone('UTC').localize(PC186ETA[1]).astimezone(timezone('Europe/London')).time())
+            PC186ETAstr2b = str('{:.1f}'.format((PC186ETA[1]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
         except:
-            KMB52XETAstr2a = ''
-            KMB52XETAstr2b = 'not available'
+            PC186ETAstr2a = ''
+            PC186ETAstr2b = 'N/A'
 
-    except:
-        print('KMB fail')
+    except Exception as e:
+        print(e)
+        print('Peel Centre fail')
         pass
     
-    CTB962SETA = []
-    CTB962SETAstr1a = ''
-    CTB962SETAstr1b = 'not available'
-    CTB962SETAstr2a = ''
-    CTB962SETAstr2b = 'not available'
+    CS204ETA = []
+    CS204ETAstr1a = ''
+    CS204ETAstr1b = 'N/A'
+    CS204ETAstr2a = ''
+    CS204ETAstr2b = 'N/A'
 
     try:
-        link_962S = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/eta/CTB/002031/962s'
-        html_962S = requests.get(link_962S).json()
+        link_CS = 'https://api.tfl.gov.uk/StopPoint/490000054CA/Arrivals?mode=bus&app_key='+TfL_key
+        html_CS = requests.get(link_CS).json()
 
-        for i in range(len(html_962S['data'])):
-            if html_962S['data'][i]['route'] == '962S':
-                CTB962SETA.append(datetime.strptime(html_962S['data'][i]['eta'],'%Y-%m-%dT%H:%M:%S+08:00'))
-                CTB962Sdest = '往' + str(html_962S['data'][i]['dest_tc'])
+        for i in range(len(html_CS)):
+            if html_CS[i]["lineId"] == '204':
+                CS204ETA.append(datetime.datetime.strptime(html_CS[i]["expectedArrival"],'%Y-%m-%dT%H:%M:%SZ'))
+                CS204dest = str(html_CS[i]["stationName"]) + ' to ' + str(html_CS[i]["destinationName"])
+
+        CS204ETA = sorted(CS204ETA)
+        
+        try:
+            CS204ETAstr1a = str(timezone('UTC').localize(CS204ETA[0]).astimezone(timezone('Europe/London')).time())
+            CS204ETAstr1b = str('{:.1f}'.format((CS204ETA[0]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
+        except:
+            CS204ETAstr1a = ''
+            CS204ETAstr1b = 'N/A'
+        try:
+            CS204ETAstr2a = str(timezone('UTC').localize(CS204ETA[1]).astimezone(timezone('Europe/London')).time())
+            CS204ETAstr2b = str('{:.1f}'.format((CS204ETA[1]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
+        except:
+            CS204ETAstr2a = ''
+            CS204ETAstr2b = 'N/A'
+
+    except:
+        pass
+
+    TUBEETA = []
+    TUBEETAstr1a = ''
+    TUBEETAstr1b = 'N/A'
+    TUBEETAstr2a = ''
+    TUBEETAstr2b = 'N/A'
+    
+    try:
+        link_TUBE = 'https://api.tfl.gov.uk/StopPoint/940GZZLUCND/Arrivals?mode=tube&app_key='+TfL_key
+        html_TUBE = requests.get(link_TUBE).json()
+        
+        for i in range(len(html_TUBE)):
+            if html_TUBE[i]["direction"] == 'inbound':
+                TUBEETA.append([datetime.datetime.strptime(html_TUBE[i]["expectedArrival"],'%Y-%m-%dT%H:%M:%SZ'),html_TUBE[i]["towards"]])
+                TUBEdest = 'Northern line - inbound'
                 
+        TUBEETA = sorted(TUBEETA, key=itemgetter(0))
+        
         try:
-            CTB962SETAstr1a = str(CTB962SETA[0].time())
-            CTB962SETAstr1b = str('{:.1f}'.format((CTB962SETA[0]-datetime.now()).total_seconds()/60))+' mins'
+            #TUBEETAstr1a = str(timezone('UTC').localize(TUBEETA[0]).astimezone(timezone('Europe/London')).time())
+            TUBEETAstr1a = str(TUBEETA[0][1])
+            TUBEETAstr1b = str('{:.1f}'.format((TUBEETA[0][0]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
         except:
-            CTB962SETAstr1a = ''
-            CTB962SETAstr1b = 'not available'
+            TUBEETAstr1a = ''
+            TUBEETAstr1b = 'N/A'
         try:
-            CTB962SETAstr2a = str(CTB962SETA[1].time())
-            CTB962SETAstr2b = str('{:.1f}'.format((CTB962SETA[1]-datetime.now()).total_seconds()/60))+' mins'
+            #TUBEETAstr2a = str(timezone('UTC').localize(TUBEETA[1]).astimezone(timezone('Europe/London')).time())
+            TUBEETAstr2a = str(TUBEETA[1][1])
+            TUBEETAstr2b = str('{:.1f}'.format((TUBEETA[1][0]-datetime.datetime.utcnow()).total_seconds()/60))+' mins'
         except:
-            CTB962SETAstr2a = ''
-            CTB962SETAstr2b = 'not available'
+            TUBEETAstr2a = ''
+            TUBEETAstr2b = 'N/A'
 
-    except:
+    except Exception as e:
+        print(e)
+        print('tube fail')
         pass
-
-    CTB962XETA = []
-    CTB962XETAstr1a = ''
-    CTB962XETAstr1b = 'not available'
-    CTB962XETAstr2a = ''
-    CTB962XETAstr2b = 'not available'
     
-    try:
-        link_962X = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/eta/CTB/002599/962x'
-        html_962X = requests.get(link_962X).json()
+    if len(PC125ETA) == 0:
+        if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(5,30):
+            PC125dest = 'molamola'#0540-0045
+        else:
+            PC125dest = 'check app la'
+    if len(PC186ETA) == 0:
+        if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(6,0):
+            PC186dest = 'molamola'#0511-2346
+        else:
+            PC186dest = 'check app la'
+    if len(CS204ETA) == 0:
+        if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(5,0):
+            CS204dest = 'molamola'#0050-0528
+        else:
+            CS204dest = 'check app la'
+    if len(TUBEETA) == 0:
+        TUBEdest = 'Northern line - inbound'
         
-        for i in range(len(html_962X['data'])):
-            if html_962X['data'][i]['route'] == '962X':
-                CTB962XETA.append(datetime.strptime(html_962X['data'][i]['eta'],'%Y-%m-%dT%H:%M:%S+08:00'))
-                CTB962Xdest = '往' + str(html_962X['data'][i]['dest_tc'])
-       
-        try:
-            CTB962XETAstr1a = str(CTB962XETA[0].time())
-            CTB962XETAstr1b = str('{:.1f}'.format((CTB962XETA[0]-datetime.now()).total_seconds()/60))+' mins'
-        except:
-            CTB962XETAstr1a = ''
-            CTB962XETAstr1b = 'not available'
-        try:
-            CTB962XETAstr2a = str(CTB962XETA[1].time())
-            CTB962XETAstr2b = str('{:.1f}'.format((CTB962XETA[1]-datetime.now()).total_seconds()/60))+' mins'
-        except:
-            CTB962XETAstr2a = ''
-            CTB962XETAstr2b = 'not available'
+    ax0.annotate('125',(0,100+10),ha='left',va='top',fontsize=84,color='w')
+    ax0.annotate(PC125dest,(1,85-2+10),ha='left',va='top',fontsize=18,color='w')
+    ax0.annotate(PC125ETAstr1a,(70,100-2+10),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(PC125ETAstr1b,(138,100+10),ha='right',va='top',fontsize=36,color='w')
+    ax0.annotate(PC125ETAstr2a,(70,90-2+10),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(PC125ETAstr2b,(138,90+10),ha='right',va='top',fontsize=36,color='w')
 
-    except:
-        pass
+    ax0.annotate('186',(0,75+20/3),ha='left',va='top',fontsize=84,color='w')
+    ax0.annotate(PC186dest,(1,60-2+20/3),ha='left',va='top',fontsize=18,color='w')
+    ax0.annotate(PC186ETAstr1a,(70,75-2+20/3),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(PC186ETAstr1b,(138,75+20/3),ha='right',va='top',fontsize=36,color='w')
+    ax0.annotate(PC186ETAstr2a,(70,65-2+20/3),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(PC186ETAstr2b,(138,65+20/3),ha='right',va='top',fontsize=36,color='w')
 
-    if len(KMB61META) == 0:
-        KMB61Mdest = '無車'
-    if len(KMB52XETA) == 0:
-        KMB52Xdest = '無車'
-    if len(CTB962SETA) == 0:
-        CTB962Sdest = '無車'
-    if len(CTB962XETA) == 0:
-        CTB962Xdest = '無車'
-        
-    ax0.annotate('61M',(0,100+10),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(KMB61Mdest,(1,85-2+10),fontproperties=chara_chi,ha='left',va='top',color='w')
-    ax0.annotate(KMB61METAstr1a,(70,100-2+10),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(KMB61METAstr1b,(138,100+10),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(KMB61METAstr2a,(70,90-2+10),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(KMB61METAstr2b,(138,90+10),ha='right',va='top',fontsize=36,color='w')
+    ax0.annotate('204',(0,50+10/3),ha='left',va='top',fontsize=84,color='w')
+    ax0.annotate(CS204dest,(1,35-2+10/3),ha='left',va='top',fontsize=18,color='w')
+    ax0.annotate(CS204ETAstr1a,(70,50-2+10/3),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(CS204ETAstr1b,(138,50+10/3),ha='right',va='top',fontsize=36,color='w')
+    ax0.annotate(CS204ETAstr2a,(70,40-2+10/3),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(CS204ETAstr2b,(138,40+10/3),ha='right',va='top',fontsize=36,color='w')
 
-    ax0.annotate('52X',(0,75+20/3),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(KMB52Xdest,(1,60-2+20/3),fontproperties=chara_chi,ha='left',va='top',color='w')
-    ax0.annotate(KMB52XETAstr1a,(70,75-2+20/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(KMB52XETAstr1b,(138,75+20/3),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(KMB52XETAstr2a,(70,65-2+20/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(KMB52XETAstr2b,(138,65+20/3),ha='right',va='top',fontsize=36,color='w')
+    ax0.annotate('Tube',(0,25),ha='left',va='top',fontsize=84,color='w')
+    ax0.annotate(TUBEdest,(1,10-2),ha='left',va='top',fontsize=18,color='w')
+    ax0.annotate(TUBEETAstr1a,(70+2,25-2),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(TUBEETAstr1b,(138,25),ha='right',va='top',fontsize=36,color='w')
+    ax0.annotate(TUBEETAstr2a,(70+2,15-2),ha='center',va='top',fontsize=18,color='w')
+    ax0.annotate(TUBEETAstr2b,(138,15),ha='right',va='top',fontsize=36,color='w')
 
-    ax0.annotate('962S',(0,50+10/3),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(CTB962Sdest,(1,35-2+10/3),fontproperties=chara_chi,ha='left',va='top',color='w')
-    ax0.annotate(CTB962SETAstr1a,(70,50-2+10/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(CTB962SETAstr1b,(138,50+10/3),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(CTB962SETAstr2a,(70,40-2+10/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(CTB962SETAstr2b,(138,40+10/3),ha='right',va='top',fontsize=36,color='w')
-
-    ax0.annotate('962X',(0,25),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(CTB962Xdest,(1,10-2),fontproperties=chara_chi,ha='left',va='top',color='w')
-    ax0.annotate(CTB962XETAstr1a,(70,25-2),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(CTB962XETAstr1b,(138,25),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(CTB962XETAstr2a,(70,15-2),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(CTB962XETAstr2b,(138,15),ha='right',va='top',fontsize=36,color='w')
+    ax0.annotate('Data provided by Transport for London',(1,0),ha='left',va='bottom',fontsize=10,color='w')
     
     ts = load.timescale()
     #sun alt now
@@ -251,7 +281,7 @@ def busbus(i):
           '28':'Thunder\nshower\n(night)','29':'Thunder\nshower\n(day)','30':'Thunder','NA':'Not\navailable'}
     
     try:
-        link_MET = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/3672?res=hourly&key=45e783fc-47ea-4a69-8dc8-021f380a754f'
+        link_MET = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/3672?res=hourly&key='+MET_key
         html_MET = requests.get(link_MET).json()
 
         temp_northolt = html_MET['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]['T']
@@ -288,7 +318,7 @@ def busbus(i):
         ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',path_effects=[pe.withStroke(linewidth=2,foreground='gray',alpha=0.5)],zorder=3)
         print('MET fail')
     
-    ax0.annotate('northolt weather updated: '+datetime.now().strftime('%H:%M:%S'),(209,0),ha='right',va='bottom',fontsize=12,color='w')
+    ax0.annotate('northolt weather updated: '+datetime.datetime.now().strftime('%H:%M:%S'),(209,0),ha='right',va='bottom',fontsize=10,color='w')
     
     plt.tight_layout()
     fig.canvas.draw() 
@@ -313,7 +343,7 @@ def busbusbus(i):
         print(e)
         pass
 
-ani = matplotlib.animation.FuncAnimation(fig, busbusbus, repeat=False, interval=15000, save_count=0)
+ani = matplotlib.animation.FuncAnimation(fig, busbusbus, repeat=False, interval=20000, save_count=0)
 warnings.filterwarnings('ignore',category=matplotlib.cbook.mplDeprecation)
 plt.tight_layout()
 ###plt.get_current_fig_manager().window.wm_geometry('-2-0')
