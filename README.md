@@ -13,9 +13,10 @@ Contains public sector information licensed under the Open Government Licence
 - Hong Kong time
 - Hourly weather info from MET Northolt station
 - SkyColor tile showing color of the sky, which changes with local elevation of the Sun accordingly
-- Bus ETA info (suspended) 
+- Bus and tube ETA info
 
 ## **Update**
 20211024 - wind chill and heat index are added. It will be shown when conditions meet.
+20211028 - transportation info added.
 
 
