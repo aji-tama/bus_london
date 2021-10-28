@@ -171,7 +171,9 @@ def busbus(i):
             CS204ETAstr2a = ''
             CS204ETAstr2b = 'N/A'
 
-    except:
+    except Exception as e:
+        print(e)
+        print('Colindale station fail')
         pass
 
     TUBEETA = []
