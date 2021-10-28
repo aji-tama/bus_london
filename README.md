@@ -17,6 +17,7 @@ Contains public sector information licensed under the Open Government Licence
 
 ## **Update**
 20211024 - wind chill and heat index are added. It will be shown when conditions meet.
+
 20211028 - transportation info added. Update frequency reduced to avoid reaching MET daily call limit.
 
 
