@@ -11,7 +11,7 @@ Contains public sector information licensed under the Open Government Licence
 ## **Features**
 - Local time
 - Hong Kong time
-- Hourly weather info from MET Northolt station
+- Hourly weather info from MET Northolt station, font color changes according to temperture
 - SkyColor tile showing color of the sky, which changes with local elevation of the Sun accordingly
 - Bus and tube ETA info
 
