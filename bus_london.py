@@ -94,7 +94,7 @@ def busbus(i):
     socket.setdefaulttimeout(3)
 
     try:
-        link_PC = 'https://api.tfl.gov.uk/StopPoint/490017849E/Arrivals?mode=bus&app_key='+TfL_key
+        link_PC = 'https://api.tfl.gov.uk/StopPoint/490017849E/Arrivals?mode=bus&app_key='+TfL_key+'&'+str(numpy.random.randint(100)) #cache problem of server side
         html_PC = requests.get(link_PC).json()
 
         for i in range(len(html_PC)):
@@ -148,7 +148,7 @@ def busbus(i):
     CS204ETAstr2b = 'N/A'
 
     try:
-        link_CS = 'https://api.tfl.gov.uk/StopPoint/490000054CA/Arrivals?mode=bus&app_key='+TfL_key
+        link_CS = 'https://api.tfl.gov.uk/StopPoint/490000054CA/Arrivals?mode=bus&app_key='+TfL_key+'&'+str(numpy.random.randint(100))
         html_CS = requests.get(link_CS).json()
 
         for i in range(len(html_CS)):
