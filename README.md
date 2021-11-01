@@ -16,10 +16,8 @@ Contains public sector information licensed under the Open Government Licence
 - Bus and tube ETA info
 
 ## **Update**
-20211024 - wind chill and heat index are added. It will be shown when conditions meet.
+20211101 - fix server cache problem by adding dummy, see [StopPoint Arrivals is out of date if I use my app key](https://techforum.tfl.gov.uk/t/stoppoint-arrivals-is-out-of-date-if-i-use-my-app-key)
 
 20211028 - transportation info added. Update frequency reduced to avoid reaching MET daily call limit.
 
-20211101 - fix server cache problem by adding dummy, see [StopPoint Arrivals is out of date if I use my app key](https://techforum.tfl.gov.uk/t/stoppoint-arrivals-is-out-of-date-if-i-use-my-app-key)
-
-
+20211024 - wind chill and heat index are added. It will be shown when conditions meet.
