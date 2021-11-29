@@ -17,6 +17,9 @@ Contains public sector information licensed under the Open Government Licence
 
 ## **Update**
 20211129 - minor bug fixed (connection problem to MET)
+
+20211129 - change temp font color (too dark to read)
+
 20211101 - fix server cache problem by adding dummy, see [StopPoint Arrivals is out of date if I use my app key](https://techforum.tfl.gov.uk/t/stoppoint-arrivals-is-out-of-date-if-i-use-my-app-key)
 
 20211028 - transportation info added. Update frequency reduced to avoid reaching MET daily call limit.
