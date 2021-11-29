@@ -297,7 +297,10 @@ def busbus(i):
         if float(temp_northolt) <= 10 and float(wind_northolt) >= 3:
             ws = float(wind_northolt)*1.609344
             WC = 13.12 + 0.6215*float(temp_northolt) - 11.37*numpy.power(ws,0.16) + 0.3965*float(temp_northolt)*numpy.power(ws,0.16)
-            ax0.annotate('WC: '+str(round(WC,1))+'$\u00B0$C',(175,5),ha='center',va='bottom',fontsize=36,color=temp_cmap(numpy.clip(WC/25,0,1)),zorder=3)
+            if WC > 0:
+                ax0.annotate('WC: '+str(round(WC,1))+'$\u00B0$C',(175,5),ha='center',va='bottom',fontsize=36,color=temp_cmap(numpy.clip(WC/25,0,1)),zorder=3)
+            else:
+                ax0.annotate('WC: '+str(round(WC,1))+'$\u00B0$C',(175,5),ha='center',va='bottom',fontsize=36,color='w',path_effects=[pe.withStroke(linewidth=2,foreground=temp_cmap(0))],zorder=2.5)
         elif float(temp_northolt) >= 27 and float(RH_northolt) >= 40:
             HI = -8.78469475556\
                  +1.61139411*float(temp_northolt)\
@@ -315,9 +318,9 @@ def busbus(i):
 
     except Exception as e:
         print(e)
-        ax0.annotate(temp_northolt+'$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color=temp_cmap(numpy.clip(float(temp_northolt)/25,0,1)),zorder=3)
-        ax0.annotate(str(round(float(RH_northolt)))+'%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
-        ax0.annotate(WT[W_northolt],(175,60),ha='center',va='center',fontsize=48,color='w',path_effects=[pe.withStroke(linewidth=2,foreground='gray',alpha=0.5)],zorder=3)
+        ax0.annotate('--$\u00B0$C',(208,15),ha='right',va='bottom',fontsize=48,color='w',zorder=3)
+        ax0.annotate('--%',(141,15),ha='left',va='bottom',fontsize=48,color='w',zorder=3)
+        ax0.annotate('--',(175,60),ha='center',va='center',fontsize=48,color='w',zorder=3)
         print('MET fail')
     
     ax0.annotate('northolt weather updated: '+datetime.datetime.now().strftime('%H:%M:%S'),(209,0),ha='right',va='bottom',fontsize=10,color='w')
@@ -343,6 +346,7 @@ def busbusbus(i):
         busbus(i)
     except Exception as e:
         print(e)
+        busbus(i)
         pass
 
 ani = matplotlib.animation.FuncAnimation(fig, busbusbus, repeat=False, interval=20000, save_count=0)
