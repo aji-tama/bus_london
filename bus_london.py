@@ -20,7 +20,6 @@ import re
 #import ChiWrap
 from operator import itemgetter
 from PIL import Image
-from bs4 import BeautifulSoup
 import numpy
 import matplotlib.animation
 import objgraph
@@ -213,52 +212,56 @@ def busbus(i):
         print('tube fail')
         pass
     
-    if len(PC125ETA) == 0:
-        if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(5,30):
-            PC125dest = 'molamola'#0540-0045
-        else:
-            PC125dest = 'check app la'
-    if len(PC186ETA) == 0:
-        if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(6,0):
-            PC186dest = 'molamola'#0511-2346
-        else:
-            PC186dest = 'check app la'
-    if len(CS204ETA) == 0:
-        if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(5,0):
-            CS204dest = 'molamola'#0050-0528
-        else:
-            CS204dest = 'check app la'
-    if len(TUBEETA) == 0:
-        TUBEdest = 'Northern line - inbound'
+    try:
+        if len(PC125ETA) == 0:
+            if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(5,30):
+                PC125dest = 'molamola'#0540-0045
+            else:
+                PC125dest = 'check app la'
+        if len(PC186ETA) == 0:
+            if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(6,0):
+                PC186dest = 'molamola'#0511-2346
+            else:
+                PC186dest = 'check app la'
+        if len(CS204ETA) == 0:
+            if datetime.time(1,0) <= datetime.datetime.now().time() < datetime.time(5,0):
+                CS204dest = 'molamola'#0050-0528
+            else:
+                CS204dest = 'check app la'
+        if len(TUBEETA) == 0:
+            TUBEdest = 'Northern line - inbound'
         
-    ax0.annotate('125',(0,100+10),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(PC125dest,(1,85-2+10),ha='left',va='top',fontsize=18,color='w')
-    ax0.annotate(PC125ETAstr1a,(70,100-2+10),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(PC125ETAstr1b,(138,100+10),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(PC125ETAstr2a,(70,90-2+10),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(PC125ETAstr2b,(138,90+10),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate('125',(0,100+10),ha='left',va='top',fontsize=84,color='w')
+        ax0.annotate(PC125dest,(1,85-2+10),ha='left',va='top',fontsize=18,color='w')
+        ax0.annotate(PC125ETAstr1a,(70,100-2+10),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(PC125ETAstr1b,(138,100+10),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate(PC125ETAstr2a,(70,90-2+10),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(PC125ETAstr2b,(138,90+10),ha='right',va='top',fontsize=36,color='w')
 
-    ax0.annotate('186',(0,75+20/3),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(PC186dest,(1,60-2+20/3),ha='left',va='top',fontsize=18,color='w')
-    ax0.annotate(PC186ETAstr1a,(70,75-2+20/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(PC186ETAstr1b,(138,75+20/3),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(PC186ETAstr2a,(70,65-2+20/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(PC186ETAstr2b,(138,65+20/3),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate('186',(0,75+20/3),ha='left',va='top',fontsize=84,color='w')
+        ax0.annotate(PC186dest,(1,60-2+20/3),ha='left',va='top',fontsize=18,color='w')
+        ax0.annotate(PC186ETAstr1a,(70,75-2+20/3),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(PC186ETAstr1b,(138,75+20/3),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate(PC186ETAstr2a,(70,65-2+20/3),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(PC186ETAstr2b,(138,65+20/3),ha='right',va='top',fontsize=36,color='w')
 
-    ax0.annotate('204',(0,50+10/3),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(CS204dest,(1,35-2+10/3),ha='left',va='top',fontsize=18,color='w')
-    ax0.annotate(CS204ETAstr1a,(70,50-2+10/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(CS204ETAstr1b,(138,50+10/3),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(CS204ETAstr2a,(70,40-2+10/3),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(CS204ETAstr2b,(138,40+10/3),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate('204',(0,50+10/3),ha='left',va='top',fontsize=84,color='w')
+        ax0.annotate(CS204dest,(1,35-2+10/3),ha='left',va='top',fontsize=18,color='w')
+        ax0.annotate(CS204ETAstr1a,(70,50-2+10/3),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(CS204ETAstr1b,(138,50+10/3),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate(CS204ETAstr2a,(70,40-2+10/3),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(CS204ETAstr2b,(138,40+10/3),ha='right',va='top',fontsize=36,color='w')
 
-    ax0.annotate('Tube',(0,25),ha='left',va='top',fontsize=84,color='w')
-    ax0.annotate(TUBEdest,(1,10-2),ha='left',va='top',fontsize=18,color='w')
-    ax0.annotate(TUBEETAstr1a,(70+2,25-2),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(TUBEETAstr1b,(138,25),ha='right',va='top',fontsize=36,color='w')
-    ax0.annotate(TUBEETAstr2a,(70+2,15-2),ha='center',va='top',fontsize=18,color='w')
-    ax0.annotate(TUBEETAstr2b,(138,15),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate('Tube',(0,25),ha='left',va='top',fontsize=84,color='w')
+        ax0.annotate(TUBEdest,(1,10-2),ha='left',va='top',fontsize=18,color='w')
+        ax0.annotate(TUBEETAstr1a,(70+2,25-2),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(TUBEETAstr1b,(138,25),ha='right',va='top',fontsize=36,color='w')
+        ax0.annotate(TUBEETAstr2a,(70+2,15-2),ha='center',va='top',fontsize=18,color='w')
+        ax0.annotate(TUBEETAstr2b,(138,15),ha='right',va='top',fontsize=36,color='w')
 
+    except Exception as e:
+        print(e)
+        
     ax0.annotate('Data provided by Transport for London',(1,0),ha='left',va='bottom',fontsize=10,color='w')
     
     ts = load.timescale()
